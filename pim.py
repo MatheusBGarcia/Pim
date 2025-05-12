@@ -1,6 +1,7 @@
 import os
 import json
 import bcrypt
+import time  # Importa o módulo time para usar sleep
 
 USERS_FILE = "usuarios.json"
 
@@ -20,12 +21,16 @@ def salvar_usuarios(usuarios):
 def cadastrar_usuario(username, senha):
     usuarios = carregar_usuarios()
     if username in usuarios:
-        print("Usuário já existe!")
-        return
+        print("\nJá existe um usuário com essas informações no sistema !!")
+        time.sleep(2)  # Delay para que o usuário veja a mensagem
+        limpar_console()  # Limpa o console
+        return False  # Retorna False para indicar que o cadastro falhou
     senha_hash = bcrypt.hashpw(senha.encode(), bcrypt.gensalt()).decode()
     usuarios[username] = senha_hash
     salvar_usuarios(usuarios)
-    print("Usuário cadastrado!")
+    print("\nUsuário cadastrado com sucesso!")
+    time.sleep(1)  # Delay para que o usuário veja a mensagem
+    return True  # Retorna True para indicar que o cadastro foi bem-sucedido
 
 def autenticar_usuario(username, senha):
     usuarios = carregar_usuarios()
@@ -33,22 +38,74 @@ def autenticar_usuario(username, senha):
         return True
     return False
 
+def deletar_usuarios():
+    if os.path.exists(USERS_FILE):
+        os.remove(USERS_FILE)
+        print("\nTodos os usuários foram deletados com sucesso!")
+    else:
+        print("\nNão há usuários para deletar.")
+
+def exibir_boas_vindas():
+    limpar_console()
+    print("\nBem-vindo à Plataforma de Cursos da OEIT (Organização de Estudos Independentes Tecnológicos)!")
+    print("Estamos felizes em tê-lo aqui. Vamos começar!\n")
+    input("Pressione Enter para continuar...")  # Aguarda o usuário pressionar Enter
+    limpar_console()  # Limpa o console após pressionar Enter
+
 def login():
+    exibir_boas_vindas()  # Chama a função de boas-vindas
     while True:
-        opcao = input("\n1. Cadastrar\n2. Entrar\n3. Sair\nEscolha: ")
+        opcao = input("Plataforma de Cursos da OEIT (Organização de Estudos Independentes Tecnológicos)\n\n1. Cadastrar-se\n2. Login\n3. Deletar Todos os Usuários\n4. Finalizar Programa\n\nEscolha uma das opções acima para continuar: ")
         if opcao == "1":
-            cadastrar_usuario(input("Usuário: "), input("Senha: "))
-        elif opcao == "2":
-            if autenticar_usuario(input("Usuário: "), input("Senha: ")):
-                print("Login bem-sucedido!")
+            limpar_console()
+            print("\nAguarde, você está sendo direcionado para a parte de cadastro do usuário...")
+            time.sleep(1.5)  # Delay de 1.5 segundos
+            limpar_console()  # Limpa o console
+            print("Cadastro de Usuário\n")
+            sucesso = cadastrar_usuario(input("Usuário: "), input("Senha: "))
+            if sucesso:
                 limpar_console()
-                main()
+                main()  # Chama a função main após cadastro bem-sucedido
+                return  # Retorna para evitar que o loop de login continue
             else:
-                print("Usuário ou senha incorretos!")
+                continue  # Se o cadastro falhar, volta para o início do loop
+        elif opcao == "2":
+            while True:
+                limpar_console()
+                print("Aguarde, você está sendo direcionado(a) para a parte de login do usuário...")
+                time.sleep(1.5)
+                limpar_console()
+                print("Login de Usuário\n")
+                usuario = input("Usuário: ")
+                senha = input("Senha: ")
+                if autenticar_usuario(usuario, senha):
+                    print("\nUsuário logado com sucesso !!")
+                    time.sleep(1)  # Pequeno delay para que usuário veja a mensagem
+                    limpar_console()
+                    main()
+                    return  # Sai da função login após sucesso
+                else:
+                    print("Usuário ou senha incorretos! Tente novamente.")
+                    time.sleep(1.5)
+                    # loop reinicia pedindo usuário e senha novamente
         elif opcao == "3":
+            confirmar = input("\nTem certeza que deseja deletar todos os usuários? Esta ação não poderá ser desfeita. (S/N): ").strip().upper()
+            if confirmar == "S":
+                deletar_usuarios()  # Chama a função para deletar todos os usuários
+                time.sleep(1.5)  # Delay para que o usuário veja a mensagem
+                limpar_console()
+            else:
+                print("\nOperação cancelada.")
+                time.sleep(1.5)
+                limpar_console()
+        elif opcao == "4":
+            time.sleep(1.5)
+            print("\nEncerrando o programa. Até logo!")
+            time.sleep(0.5)
+            limpar_console()
             break
         else:
-            print("Opção inválida!")
+            print("\n⚠ Opção inválida ⚠")
 
 def exibir_menu():
     print("\nPágina inicial:")
@@ -72,6 +129,7 @@ def sistemas_operacionais():
         print("6 = Conclusão/Resumo")
         print("0 = Voltar para página inicial")
         opcao = input("\nEscolha uma opção: ")
+        time.sleep(1)
 
         if opcao == "1":
             limpar_console()
@@ -87,9 +145,11 @@ def sistemas_operacionais():
             print("Licenciamento pago, aumentando o custo.")
             direcionamento = input("\nDigite S para ver mais sistemas operacionais ou digite P para ir a página inicial: ")
             if direcionamento == "S":
+                time.sleep(1)
                 limpar_console()
                 sistemas_operacionais()
             elif direcionamento == "P":
+                time.sleep(1)
                 limpar_console()
                 main()
 
@@ -108,9 +168,11 @@ def sistemas_operacionais():
             print("  Menos opções de personalização.")
             direcionamento = input("\nDigite S para ver mais sistemas operacionais ou digite P para ir a página inicial: ")
             if direcionamento == "S":
+                time.sleep(1)
                 limpar_console()
                 sistemas_operacionais()
             elif direcionamento == "P":
+                time.sleep(1)
                 limpar_console()
                 main()
         
@@ -128,9 +190,11 @@ def sistemas_operacionais():
             print("  Pode ter dificuldades com drivers de hardware menos comuns.")
             direcionamento = input("\nDigite S para ver mais sistemas operacionais ou digite P para ir a página inicial: ")
             if direcionamento == "S":
+                time.sleep(1)
                 limpar_console()
                 sistemas_operacionais()
             elif direcionamento == "P":
+                time.sleep(1)
                 limpar_console()
                 main()
 
@@ -147,9 +211,11 @@ def sistemas_operacionais():
             print("  Alguns modelos vêm com bloatware (apps desnecessários).")
             direcionamento = input("\nDigite S para ver mais sistemas operacionais ou digite P para ir a página inicial: ")
             if direcionamento == "S":
+                time.sleep(1)
                 limpar_console()
                 sistemas_operacionais()
             elif direcionamento == "P":
+                time.sleep(1)
                 limpar_console()
                 main()
 
@@ -166,9 +232,11 @@ def sistemas_operacionais():
             print("  Depende do ecossistema da Apple para muitos serviços.")
             direcionamento = input("\nDigite S para ver mais sistemas operacionais ou digite P para ir a página inicial: ")
             if direcionamento == "S":
+                time.sleep(1)
                 limpar_console()
                 sistemas_operacionais()
             elif direcionamento == "P":
+                time.sleep(1)
                 limpar_console()
                 main()
 
@@ -180,16 +248,18 @@ def sistemas_operacionais():
             print("Para segurança, servidores e programadores, Linux é excelente.")
             print("Para mobilidade e personalização, Android é ideal.")
             print("Para desempenho otimizado e segurança, iOS se sobressai.")
-            
             direcionamento = input("\nDigite S para ver mais sistemas operacionais ou digite P para ir a página inicial: ")
             if direcionamento == "S":
+                time.sleep(1)
                 limpar_console()
                 sistemas_operacionais()
             elif direcionamento == "P":
+                time.sleep(1)
                 limpar_console()
                 main()
 
         elif opcao == "0":
+            time.sleep(1)
             limpar_console()
             main()
         
@@ -200,10 +270,12 @@ def sistemas_operacionais():
 def consumo_descarte():
     while True:
         print("\nComo lidar com os Aparelhos Eletrônicos.")
-        print("1. Redução do consumo de energia")
+        print("\n1. Redução do consumo de energia")
         print("2. Descarte de equipamentos eletrônicos")
         print("0. Voltar a página inicial")
         opcao = input("\nEscolha uma opção: ")
+        time.sleep(1)
+
         if opcao == "1":
             limpar_console()
             print("\nRedução do consumo de energia:")
@@ -215,11 +287,14 @@ def consumo_descarte():
             print("Migrar para computação em nuvem e usar virtualização para otimizar recursos.")
             direcionamento = input("\nDigite C para ver sobre o Descarte de Equipamentos Eletrônicos ou digite P para ir a página inicial: ")
             if direcionamento == "C":
+                time.sleep(1)
                 limpar_console()
                 consumo_descarte()
             elif direcionamento == "P":
+                time.sleep(1)
                 limpar_console()
                 main()
+
         elif opcao == "2":
             limpar_console()
             print("\nDescarte de equipamentos eletrônicos:")
@@ -231,12 +306,15 @@ def consumo_descarte():
             print("Considerar reparos em vez de descarte quando possível.")
             direcionamento = input("\nDigite D para ver sobre a Redução do Consumo de Energia ou digite P para ir a página inicial: ")
             if direcionamento == "D":
+                time.sleep(1)
                 limpar_console()
                 consumo_descarte()
             elif direcionamento == "P":
+                time.sleep(1)
                 limpar_console()
                 main()
         elif opcao == "0":
+            time.sleep(1)
             limpar_console()
             main()
         else:
@@ -248,13 +326,14 @@ def consumo_descarte():
 def seguranca_digital():
     limpar_console()
     print("\nSegurança Digital")
-    print("\n1.O que é Segurança Digital?")
+    print("\n1. O que é Segurança Digital?")
     print("2. Senhas Fortes e Autenticação")
     print("3. Ataques Cibernéticos e Como se Proteger")
     print("4. Protegendo Dispositivos e Redes")
     print("5. Conclusão")
     print("0. Voltar para a página inicial")
     opcao = input("\nEscolha uma opção: ")
+    time.sleep(1)
 
     if opcao == "1":
         limpar_console()
@@ -267,13 +346,16 @@ def seguranca_digital():
         print("\n💡 Dica: Nunca clique em links suspeitos e sempre verifique a autenticidade dos sites antes de inserir dados pessoais.")
         direcionamento = input("\nDigite S para ver mais sobre segurança digital ou digite P para ir a página inicial: ")
         if direcionamento == "S":
+            time.sleep(1)
             limpar_console()
             seguranca_digital()
         elif direcionamento == "P":
+            time.sleep(1)
             limpar_console()
             main()
+
     elif opcao == "2":
-        limpar_console
+        limpar_console()
         print("\n2. Senhas Fortes e Autenticação")
         print("\n🔑 Por que senhas fortes são importantes?")
         print("Senhas fracas são facilmente descobertas por hackers usando ataques de força bruta (testando várias combinações) ou engenharia social.")
@@ -290,11 +372,14 @@ def seguranca_digital():
         print("\n💡 Dica: Use um gerenciador de senhas para armazenar e gerar senhas seguras automaticamente.")
         direcionamento = input("\nDigite S para ver mais sobre segurança digital ou digite P para ir a página inicial: ")
         if direcionamento == "S":
+            time.sleep(1)
             limpar_console()
             seguranca_digital()
         elif direcionamento == "P":
+            time.sleep(1)
             limpar_console()
             main()
+
     elif opcao == "3":
         limpar_console()
         print("\n3. Ataques Cibernéticos e Como se Proteger")
@@ -310,11 +395,14 @@ def seguranca_digital():
         print("💡 Proteção: Nunca compartilhe dados pessoais por telefone ou e-mail.")
         direcionamento = input("\nDigite S para ver mais sobre segurança digital ou digite P para ir a página inicial: ")
         if direcionamento == "S":
+            time.sleep(1)
             limpar_console()
             seguranca_digital()
         elif direcionamento == "P":
+            time.sleep(1)
             limpar_console()
             main()
+
     elif opcao == "4":
         limpar_console()
         print("\n4. Protegendo Dispositivos e Redes")
@@ -330,11 +418,14 @@ def seguranca_digital():
         print("\n💡 Dica Extra: Desative o Bluetooth e Wi-Fi quando não estiverem em uso para evitar conexões indesejadas.")
         direcionamento = input("\nDigite S para ver mais sobre segurança digital ou digite P para ir a página inicial: ")
         if direcionamento == "S":
+            time.sleep(1)
             limpar_console()
             seguranca_digital()
         elif direcionamento == "P":
+            time.sleep(1)
             limpar_console()
             main()
+
     elif opcao == "5":
         limpar_console()
         print("\nConclusão")
@@ -615,63 +706,61 @@ def questionario():
         ["A) Mandarim", "B) Inglês", "C) Espanhol", "D) Hindi", "E) Árabe"],
         ["A) Pacífico", "B) Atlântico", "C) Índico", "D) Ártico", "E) Antártico"]
     ]
-
     respostas_certas = ['A', 'D', 'C', 'A', 'B', 'B', 'E', 'A', 'A', 'A']
     nota_total = 0
-
     for i in range(len(perguntas)):
         print(perguntas[i])
         for alternativa in alternativas[i]:
             print(alternativa)
         resposta = input("Escolha uma alternativa (A, B, C, D ou E): ").strip().upper()
-        
         while resposta not in ['A', 'B', 'C', 'D', 'E']:
             print("Alternativa inválida. Tente novamente.")
             resposta = input("Escolha uma alternativa (A, B, C, D ou E): ").strip().upper()
-        
         # Atribui nota 10 para resposta correta e 0 para resposta errada
         if resposta == respostas_certas[i]:
             nota_total += 10
         else:
             nota_total += 0  # Pode ser ajustado para dar notas parciais se desejado
-
     print(f"\nObrigado por participar do questionário! Sua nota total é: {nota_total}/100")
 
 def main():
     while True:
         exibir_menu()
         escolha = input("\nEscolha uma opção (1-6 ou 0 para sair): ")
-
         if escolha == '1':
+            time.sleep(1)
             limpar_console()
             sistemas_operacionais()
         elif escolha == '2':
+            time.sleep(1)
             limpar_console()
             consumo_descarte()
         elif escolha == '3':
+            time.sleep(1)
             limpar_console()
             seguranca_digital()
         elif escolha == '4':
+            time.sleep(1)
             limpar_console()
             protecao_dados()
         elif escolha == '5':
+            time.sleep(1)
             limpar_console()
             mini_curso_pensamento_logico()
         elif escolha == "6":
+            time.sleep(1)
             limpar_console()
             questionario()
         elif escolha == '0':
             cert = input("Tem certeza que quer sair do programa? S/N ")
-            if cert == "S":
+            if cert.upper() == "S":
                 print("Saindo do programa...")
                 break
             else:
                 limpar_console()
-                main()
         else:
             limpar_console()
-            print("\nOpção inválida. Por favor, escolha uma opção entre 1 e 7 ou 0 para sair.")
-            main()
+            print("\nOpção inválida. Por favor,escolha uma opção entre 1 e 6 ou 0 para sair.")
 
 if __name__ == "__main__":
     login()
