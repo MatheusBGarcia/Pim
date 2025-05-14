@@ -1,7 +1,12 @@
 import os
 import json
 import bcrypt
-import time  # Importa o módulo time para usar sleep
+import time
+import statistics  # Importa a biblioteca para cálculos estatísticos
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt  # Importa a biblioteca para gráficos
+
 
 USERS_FILE = "usuarios.json"
 
@@ -22,21 +27,62 @@ def cadastrar_usuario(username, senha):
     usuarios = carregar_usuarios()
     if username in usuarios:
         print("\nJá existe um usuário com essas informações no sistema !!")
-        time.sleep(2)  # Delay para que o usuário veja a mensagem
-        limpar_console()  # Limpa o console
-        return False  # Retorna False para indicar que o cadastro falhou
+        time.sleep(2)
+        limpar_console()
+        return False
     senha_hash = bcrypt.hashpw(senha.encode(), bcrypt.gensalt()).decode()
-    usuarios[username] = senha_hash
+    usuarios[username] = {"senha": senha_hash, "nota": 0}  # Armazena a nota inicial como 0
     salvar_usuarios(usuarios)
     print("\nUsuário cadastrado com sucesso!")
-    time.sleep(1)  # Delay para que o usuário veja a mensagem
-    return True  # Retorna True para indicar que o cadastro foi bem-sucedido
+    time.sleep(1)
+    return True
 
 def autenticar_usuario(username, senha):
     usuarios = carregar_usuarios()
-    if username in usuarios and bcrypt.checkpw(senha.encode(), usuarios[username].encode()):
+    if username in usuarios and bcrypt.checkpw(senha.encode(), usuarios[username]["senha"].encode()):
         return True
     return False
+
+def calcular_estatisticas_notas():
+       usuarios = carregar_usuarios()
+       if not usuarios:
+           print("Nenhum usuário cadastrado para calcular estatísticas.")
+           return
+       notas = [usuarios[nome]["nota"] for nome in usuarios]
+       
+       media = statistics.mean(notas)
+       mediana = statistics.median(notas)
+       moda = statistics.mode(notas) if len(set(notas)) < len(notas) else "Sem moda"
+       print(f"\nEstatísticas das Notas:")
+       print(f"Média: {media:.2f}")
+       print(f"Mediana: {mediana:.2f}")
+       print(f"Moda: {moda}")
+
+def atualizar_nota(username, nota):
+    usuarios = carregar_usuarios()
+    if username in usuarios:
+        usuarios[username]["nota"] = nota  # Atualiza a nota do usuário
+        salvar_usuarios(usuarios)
+
+def gerar_grafico_notas():
+       usuarios = carregar_usuarios()
+       if not usuarios:
+           print("Nenhum usuário cadastrado para gerar gráfico.")
+           return
+       nomes = list(usuarios.keys())
+       notas = [usuarios[nome]["nota"] for nome in nomes]
+       
+       plt.figure(figsize=(10,6))
+       plt.bar(nomes, notas, color='skyblue')
+       plt.xlabel('Usuários')
+       plt.ylabel('Notas')
+       plt.title('Notas dos Usuários')
+       plt.xticks(rotation=45, ha='right')
+       plt.ylim(0, 100)
+       plt.tight_layout()
+       plt.show()
+       # Chama a função para calcular e exibir as estatísticas
+       calcular_estatisticas_notas()
 
 def deletar_usuarios():
     if os.path.exists(USERS_FILE):
@@ -53,63 +99,59 @@ def exibir_boas_vindas():
     limpar_console()  # Limpa o console após pressionar Enter
 
 def login():
-    exibir_boas_vindas()  # Chama a função de boas-vindas
+    exibir_boas_vindas()
     while True:
         opcao = input("Plataforma de Cursos da OEIT (Organização de Estudos Independentes Tecnológicos)\n\n1. Cadastrar-se\n2. Login\n3. Deletar Todos os Usuários\n4. Finalizar Programa\n\nEscolha uma das opções acima para continuar: ")
         if opcao == "1":
             limpar_console()
             print("\nAguarde, você está sendo direcionado para a parte de cadastro do usuário...")
-            time.sleep(1.5)  # Delay de 1.5 segundos
-            limpar_console()  # Limpa o console
+            time.sleep(1.5)
+            limpar_console()
             print("Cadastro de Usuário\n")
             sucesso = cadastrar_usuario(input("Usuário: "), input("Senha: "))
             if sucesso:
                 limpar_console()
-                main()  # Chama a função main após cadastro bem-sucedido
-                return  # Retorna para evitar que o loop de login continue
+                main()  
+                return  
             else:
-                continue  # Se o cadastro falhar, volta para o início do loop
+                continue  
         elif opcao == "2":
-            while True:
+            limpar_console()
+            print("Login de Usuário\n")
+            usuario = input("Usuário: ")
+            senha = input("Senha: ")
+            if autenticar_usuario(usuario, senha):
+                print("\nUsuário logado com sucesso !!")
+                time.sleep(1)  
                 limpar_console()
-                print("Aguarde, você está sendo direcionado(a) para a parte de login do usuário...")
+                main(usuario)  
+                return  
+            else:
+                print("Usuário ou senha incorretos! Tente novamente.")
                 time.sleep(1.5)
                 limpar_console()
-                print("Login de Usuário\n")
-                usuario = input("Usuário: ")
-                senha = input("Senha: ")
-                if autenticar_usuario(usuario, senha):
-                    print("\nUsuário logado com sucesso !!")
-                    time.sleep(1)  # Pequeno delay para que usuário veja a mensagem
-                    limpar_console()
-                    main()
-                    return  # Sai da função login após sucesso
-                else:
-                    print("Usuário ou senha incorretos! Tente novamente.")
-                    time.sleep(1.5)
-                    # loop reinicia pedindo usuário e senha novamente
         elif opcao == "3":
             confirmar = input("\nTem certeza que deseja deletar todos os usuários? Esta ação não poderá ser desfeita. (S/N): ").strip().upper()
             if confirmar == "S":
-                deletar_usuarios()  # Chama a função para deletar todos os usuários
-                time.sleep(1.5)  # Delay para que o usuário veja a mensagem
+                deletar_usuarios()  
+                time.sleep(1.5)  
                 limpar_console()
             else:
                 print("\nOperação cancelada.")
                 time.sleep(1.5)
                 limpar_console()
         elif opcao == "4":
-            time.sleep(1.5)
             print("\nEncerrando o programa. Até logo!")
-            time.sleep(0.5)
+            time.sleep(1)
             limpar_console()
             break
         else:
             print("\n⚠ Opção inválida ⚠")
+            time.sleep(1)
+            limpar_console()
 
-def exibir_menu():
-    print("\nPágina inicial:")
-    print("\nOlá, bem vindo a plataforma de cursos da OEIT (Organização de Estudos Independentes Tecnológicos): ")
+def exibir_menu(usuario_logado):
+    print(f"\nOlá, {usuario_logado}, bem vindo à plataforma de cursos da OEIT:")
     print("\n1. Vantagens e Desvantagens Entre os Sistemas Operacionais.")
     print("2. Como Lidar com os Aparelhos Eletrônicos.")
     print("3. Segurança Digital.")
@@ -677,15 +719,15 @@ def mini_curso_pensamento_logico():
             print("Opção inválida! Tente novamente.")
             mini_curso_pensamento_logico()
 
-def questionario():
-    print("Bem-vindo ao questionário desse curso!")
+def questionario(usuario_logado):
+    print(f"Bem-vindo ao questionário, {usuario_logado}!")
     print("Por favor, responda as perguntas a seguir:\n")
 
     perguntas = [
         "1. Qual é o melhor sistema operacional para a programação?",
         "2. Qual dessas senhas é considerada fraca?",
         "3. Qual desses comandos é uma estrutura de decisão?",
-        "4. O que é um Phising",
+        "4. O que é um Phishing?",
         "5. Qual é a importância da criptografia na proteção de dados?",
         "6. Como funciona a autenticação de dois fatores (2FA) e por que ela é recomendada?",
         "7. Qual é o melhor sistema operacional para mobilidade e personalização?",
@@ -699,7 +741,7 @@ def questionario():
         ["A) gR.2025", "B) 1290Kain!", "C) 0hAppY0_", "D) senha123", "E) 1001ALKs?"],
         ["A) WHILE", "B) FOR", "C) IF", "D) PRINT", "E) RETURN"],
         ["A) Golpe que engana usuários para fornecerem dados pessoais.", "B) Um vírus que queima o computador", "C) Um anti-vírus", "D) Um roteador Wi-Fi", "E) É uma linguagem de programação"],
-        ["A) A criptografia melhora a velocidade da transmissão de dados na internet.", "B) B) A criptografia garante que apenas pessoas autorizadas possam acessar as informações, protegendo contra acessos não autorizados.", "C) A criptografia substitui completamente a necessidade de senhas e autenticação.", "D) D) A criptografia serve apenas para ocultar informações temporariamente, sem garantir segurança real.", "E) A criptografia só é útil para grandes empresas e não tem aplicação para usuários comuns."],
+        ["A) A criptografia melhora a velocidade da transmissão de dados na internet.", "B) A criptografia garante que apenas pessoas autorizadas possam acessar as informações, protegendo contra acessos não autorizados.", "C) A criptografia substitui completamente a necessidade de senhas e autenticação.", "D) A criptografia serve apenas para ocultar informações temporariamente, sem garantir segurança real.", "E) A criptografia só é útil para grandes empresas e não tem aplicação para usuários comuns."],
         ["A) A 2FA é um processo onde o usuário precisa fornecer apenas um código enviado por e-mail.", "B) A 2FA exige dois tipos diferentes de informação: algo que o usuário sabe (como uma senha) e algo que ele possui (como um código gerado ou enviado para um dispositivo).", "C) A 2FA requer que o usuário faça login duas vezes com a mesma senha para garantir a segurança.", "D) A 2FA exige apenas uma senha forte para acessar a conta e não envolve verificação adicional.", "E) A 2FA é recomendada apenas para usuários de aplicativos bancários e não para serviços online comuns."],
         ["A) Windows", "B) macOS", "C) iOS(móvel)", "D) Linux", "E) Android(móvel)"],
         ["A) Leonardo da Vinci", "B) Michelangelo", "C) Van Gogh", "D) Picasso", "E) Rembrandt"],
@@ -716,16 +758,21 @@ def questionario():
         while resposta not in ['A', 'B', 'C', 'D', 'E']:
             print("Alternativa inválida. Tente novamente.")
             resposta = input("Escolha uma alternativa (A, B, C, D ou E): ").strip().upper()
-        # Atribui nota 10 para resposta correta e 0 para resposta errada
         if resposta == respostas_certas[i]:
             nota_total += 10
-        else:
-            nota_total += 0  # Pode ser ajustado para dar notas parciais se desejado
-    print(f"\nObrigado por participar do questionário! Sua nota total é: {nota_total}/100")
+    print(f"\nObrigado por participar do questionário! Sua nota total é: {nota_total}/100\n")
+    atualizar_nota(usuario_logado, nota_total)
+    time.sleep(2)
+    limpar_console()
+    print("Gerando gráfico das notas de todos os usuários...")
+    time.sleep(1.5)
+    gerar_grafico_notas()
 
-def main():
+def main(usuario_logado=None):
+    if usuario_logado is None:
+        usuario_logado = "Usuário"
     while True:
-        exibir_menu()
+        exibir_menu(usuario_logado)
         escolha = input("\nEscolha uma opção (1-6 ou 0 para sair): ")
         if escolha == '1':
             time.sleep(1)
@@ -750,7 +797,7 @@ def main():
         elif escolha == "6":
             time.sleep(1)
             limpar_console()
-            questionario()
+            questionario(usuario_logado)
         elif escolha == '0':
             cert = input("Tem certeza que quer sair do programa? S/N ")
             if cert.upper() == "S":
@@ -760,7 +807,8 @@ def main():
                 limpar_console()
         else:
             limpar_console()
-            print("\nOpção inválida. Por favor,escolha uma opção entre 1 e 6 ou 0 para sair.")
+            print("\nOpção inválida. Por favor, escolha uma opção entre 1 e 6 ou 0 para sair.")
+            time.sleep(1)
 
 if __name__ == "__main__":
     login()
