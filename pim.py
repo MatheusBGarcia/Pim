@@ -7,7 +7,6 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt  # Importa a biblioteca para gráficos
 
-
 USERS_FILE = "usuarios.json"
 
 def limpar_console():
@@ -24,20 +23,35 @@ def salvar_usuarios(usuarios):
         json.dump(usuarios, file, indent=4)
 
 def cadastrar_usuario(username, senha):
+    # Verifica se o nome de usuário ou a senha estão vazios
+    if not username.strip() or not senha.strip():
+        print("\nO nome de usuário e/ou senha não podem estar vazios!")
+        time.sleep(2)
+        limpar_console()
+        return False
     usuarios = carregar_usuarios()
     if username in usuarios:
         print("\nJá existe um usuário com essas informações no sistema !!")
         time.sleep(2)
         limpar_console()
-        return False
+        return False  
     senha_hash = bcrypt.hashpw(senha.encode(), bcrypt.gensalt()).decode()
     usuarios[username] = {"senha": senha_hash, "nota": 0}  # Armazena a nota inicial como 0
     salvar_usuarios(usuarios)
     print("\nUsuário cadastrado com sucesso!")
     time.sleep(1)
+    limpar_console()
+    main(username)
     return True
 
 def autenticar_usuario(username, senha):
+    # Verifica se o usuário ou a senha estão vazios
+    if not username.strip():
+        print("\nPor favor, digite o nome de usuário.")
+        return False
+    if not senha.strip():
+        print("\nPor favor, digite a senha.")
+        return False
     usuarios = carregar_usuarios()
     if username in usuarios and bcrypt.checkpw(senha.encode(), usuarios[username]["senha"].encode()):
         return True
@@ -49,7 +63,6 @@ def calcular_estatisticas_notas():
            print("Nenhum usuário cadastrado para calcular estatísticas.")
            return
        notas = [usuarios[nome]["nota"] for nome in usuarios]
-       
        media = statistics.mean(notas)
        mediana = statistics.median(notas)
        moda = statistics.mode(notas) if len(set(notas)) < len(notas) else "Sem moda"
@@ -87,7 +100,7 @@ def gerar_grafico_notas():
 def deletar_usuarios():
     if os.path.exists(USERS_FILE):
         os.remove(USERS_FILE)
-        print("\nTodos os usuários foram deletados com sucesso!")
+        print("Todos os usuários foram deletados com sucesso!")
     else:
         print("\nNão há usuários para deletar.")
 
@@ -108,10 +121,12 @@ def login():
             time.sleep(1.5)
             limpar_console()
             print("Cadastro de Usuário\n")
-            sucesso = cadastrar_usuario(input("Usuário: "), input("Senha: "))
+            # Para capturar o username e senha separados para novo usuário
+            usuario = input("Usuário: ")
+            senha = input("Senha: ")
+            sucesso = cadastrar_usuario(usuario, senha)
             if sucesso:
-                limpar_console()
-                main()  
+                # já chama exibir_menu e main dentro de cadastrar_usuario
                 return  
             else:
                 continue  
@@ -799,12 +814,16 @@ def main(usuario_logado=None):
             limpar_console()
             questionario(usuario_logado)
         elif escolha == '0':
-            cert = input("Tem certeza que quer sair do programa? S/N ")
+            cert = input("Tem certeza que quer sair do programa? (S/N): ")
             if cert.upper() == "S":
-                print("Saindo do programa...")
+                time.sleep(1)
+                print("\nSaindo do programa...")
+                print("Obrigado por usar a nossa plataforma. Até a próxima!")
+                time.sleep(1)
+                limpar_console()
                 break
             else:
-                limpar_console()
+                continue
         else:
             limpar_console()
             print("\nOpção inválida. Por favor, escolha uma opção entre 1 e 6 ou 0 para sair.")
